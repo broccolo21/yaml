@@ -1,0 +1,71 @@
+workflows:
+  flutter-workflow:
+    name: Flutter Workflow
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        # Aggiungi qui le variabili d'ambiente necessarie, ad esempio per Firebase
+        # FIREBASE_TOKEN: Encrypted(FIREBASE_TOKEN)
+    triggering:
+      events:
+        - push
+        - pull_request
+    scripts:
+      - name: Install Flutter dependencies
+        script: |
+          flutter packages get
+
+      - name: Analyze the code
+        script: |
+          flutter analyze
+
+      - name: Run tests
+        script: |
+          flutter test
+
+    android:
+      distribution:
+        google_play:
+          credentials: Encrypted(GOOGLE_PLAY_JSON_KEY)
+          track: internal
+          in_app_update_priority: 3
+      artifacts:
+        - build/app/outputs/flutter-apk/app-release.apk
+      build:
+        android_target: lib/main.dart
+        android_variant: release
+        keystore: 
+          # Configura le credenziali del keystore se necessario
+          keystore_path: Encrypted(ANDROID_KEYSTORE_PATH)
+          keystore_password: Encrypted(ANDROID_KEYSTORE_PASSWORD)
+          keystore_key_alias: Encrypted(ANDROID_KEY_ALIAS)
+          key_password: Encrypted(ANDROID_KEY_PASSWORD)
+
+    ios:
+      distribution:
+        app_store:
+          apple_id: Encrypted(APPLE_ID)
+          asc_provider: Encrypted(APPLE_ASC_PROVIDER)
+          api_key_id: Encrypted(APPLE_API_KEY_ID)
+          api_key_issuer_id: Encrypted(APPLE_API_KEY_ISSUER_ID)
+          api_key_path: Encrypted(APPLE_API_KEY_PATH)
+          app_store_id: Encrypted(APPLE_APP_STORE_ID)
+      artifacts:
+        - build/ios/ipa/*.ipa
+      build:
+        ios_target: lib/main.dart
+        ios_configuration: release
+        codesigning:
+          team_id: Encrypted(APPLE_TEAM_ID)
+          provisioning_profiles: 
+            - build/macos/Runner/Runner.mobileprovision
+          keychain_path: Encrypted(APPLE_KEYCHAIN_PATH)
+          keychain_password: Encrypted(APPLE_KEYCHAIN_PASSWORD)
+          keychain_profile_name: Encrypted(APPLE_PROFILE_NAME)
+
+artifacts:
+  - build/**/outputs/**/*.apk
+  - build/**/outputs/**/*.ipa
